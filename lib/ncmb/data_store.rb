@@ -10,5 +10,10 @@ module NCMB
       path = "/#{@client.api_version}/classes/#{@name}"
       @client.get path, queries
     end
+    
+    def post(queries = {})
+      path = "/#{@client.api_version}/classes/#{@name}"
+      @client.post path, queries
+    end
   end
 end

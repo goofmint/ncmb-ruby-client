@@ -3,6 +3,7 @@ require 'openssl'
 require 'Base64'
 require "net/http"
 require "uri"
+require 'json'
 module NCMB
   DOMAIN = 'mb.api.cloud.nifty.com'
   API_VERSION = '2013-09-01'
@@ -37,7 +38,7 @@ module NCMB
         "SignatureVersion" => "2",
         "X-NCMB-Application-Key" => @application_key
       }
-      params = params_base.merge(encoded_queries)
+      params = method == :get ? params_base.merge(encoded_queries) : params_base
       now = Time.now.utc.iso8601
       params = params.merge "X-NCMB-Timestamp" => now
       params = Hash[params.sort{|a, b| a[0].to_s <=> b[0].to_s}]
@@ -58,11 +59,11 @@ module NCMB
         "X-NCMB-Timestamp" => now,
         "Content-Type" => 'application/json'
       }
-      path = path + (query == '' ? "" : "?"+query)
       if method == :get
+        path = path + (query == '' ? "" : "?"+query)
         return http.get(path, headers).body
       else
-        return http.post(path, headers).body
+        return http.post(path, queries.to_json, headers)
       end
     end
   end
