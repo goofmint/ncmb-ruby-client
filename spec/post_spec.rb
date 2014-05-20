@@ -12,6 +12,10 @@ describe NCMB do
     todo_class = @ncmb.data_store 'TODO'
     response = todo_class.post queries
     # {"createDate":"2014-05-20T01:53:25.280Z","objectId":"rEDC6P4EgfiBf0AZ"}
-    # puts response.body
+    puts response.body
+  end
+  
+  it "Post with location #1" do
+    
   end
 end
