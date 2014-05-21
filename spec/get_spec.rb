@@ -36,7 +36,7 @@ describe NCMB do
         }
       }
     }
-    signature = @ncmb.generate_signature :get, "/#{@ncmb.api_version}/classes/Venue", "2014-05-20T04:55:16.395Z", params
+    signature = @ncmb.generate_signature :get, "/#{@ncmb.api_version}/classes/Venue", URI.escape("2014-05-20T04:55:16.395Z", /[^-_.!~*'()a-zA-Z\d]/u), params
     expect(signature).to eq("sqlhM3xxNPUxFWDHQ5CdDqBp6dInU/YkO2PzuY31Pbk=")
   end
 end

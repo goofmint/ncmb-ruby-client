@@ -23,24 +23,6 @@ json['response']['venues'].each do |venue|
 end
 params = {}
 params[:where] = {
-  "point" => {
-    "$within" => {
-      "$box" => [
-                 {
-                   "__type" => "GeoPoint",
-                   "latitude" => 35.690921,
-                   "longitude" => 139.700258
-                 },
-                 {
-                   "__type" => "GeoPoint",
-                   "latitude" => 35.728926,
-                   "longitude" => 139.71038
-                 }
-                ]
-    }
-  }
-}
-params[:where] = {
   "location" => {
     "$nearSphere" => {
       "__type" => "GeoPoint",
