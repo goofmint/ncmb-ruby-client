@@ -7,17 +7,18 @@ require 'json'
 module NCMB
   DOMAIN = 'mb.api.cloud.nifty.com'
   API_VERSION = '2013-09-01'
+  @application_key = nil
+  @client_key = nil
+  @@client = nil
+  
   class Client
+    include NCMB
     attr_accessor :application_key, :client_key, :domain, :api_version
     def initialize(params = {})
       @domain          = NCMB::DOMAIN
       @api_version     = NCMB::API_VERSION
       @application_key = params[:application_key]
       @client_key      = params[:client_key]
-    end
-    
-    def data_store(name)
-      NCMB::DataStore.new self, name
     end
     
     def get(path, params)
@@ -28,15 +29,45 @@ module NCMB
       request :post, path, params
     end
     
-    def encode_query(queries = {})
-      queries.each do |k, v|
-        if v.is_a? Hash
-          queries[k] = URI.escape(v.to_json.to_s, /[^-_.!~*'()a-zA-Z\d;\/?:@&=+$,#]/)
+    def array2hash(ary)
+      new_v = {}
+      ary.each do |hash|
+        if hash.is_a? Hash
+          key = hash.keys[0]
+          new_v[key] = hash[key]
         else
-          queries[k] = URI.escape(v.to_s, /[^-_.!~*'()a-zA-Z\d;\/?:@&=+$,#]/)
+          new_v = [hash]
         end
       end
-      queries
+      new_v
+    end
+    
+    def encode_query(queries = {})
+      results = {}
+      queries.each do |k, v|
+        v = array2hash(v) if v.is_a? Array
+        if v.is_a? Hash
+          results[k.to_s] = URI.escape(v.to_json.to_s, /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
+        else
+          results[k.to_s] = URI.escape(v.to_s, /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
+        end
+      end
+      results
+    end
+
+    def hash2query(queries = {})
+      results = {}
+      queries.each do |k, v|
+        v = array2hash(v) if v.is_a? Array
+        if v.is_a? Hash
+          results[k.to_s] = v.to_json.to_s
+        else
+          results[k.to_s] = v.to_s
+        end
+      end
+      results.collect do |key, value|
+        "#{key}=#{value}"
+      end
     end
     
     def generate_signature(method, path, now = nil, queries = {})
@@ -48,19 +79,19 @@ module NCMB
       params = method == :get ? params_base.merge(encode_query(queries)) : params_base
       now ||= Time.now.utc.iso8601
       params = params.merge "X-NCMB-Timestamp" => now
-      params = Hash[params.sort{|a, b| a[0].to_s <=> b[0].to_s}]
+      params = params.sort_by{|a, b| a.to_s}.to_h
       signature_base = []
       signature_base << method.upcase
       signature_base << @domain
       signature_base << path
       signature_base << params.collect{|k,v| "#{k}=#{v}"}.join("&")
-      signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
+      signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
     end
     
     def request(method, path, queries = {})
       now = Time.now.utc.iso8601
       signature = generate_signature(method, path, now, queries)
-      query = queries.collect{|k,v| "#{k}=#{v.is_a?(Hash) ? v.to_json.to_s : v}"}.join("&")
+      query = hash2query(queries).join("&")
       http = Net::HTTP.new(@domain, 443)
       http.use_ssl=true
       headers = {
@@ -70,16 +101,15 @@ module NCMB
         "Content-Type" => 'application/json'
       }
       if method == :get
-        path = path + (query == '' ? "" : "?"+query)
-        return http.get(path, headers).body
+        path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
+        return JSON.parse(http.get(path, headers).body, symbolize_names: true)
       else
-        return http.post(path, queries.to_json, headers)
+        return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
       end
     end
   end
   
-  @@client = nil
-  def NCMB.init(params = {})
+  def NCMB.initialize(params = {})
     defaulted = {
       application_key: ENV["NCMB_APPLICATION_KEY"],
       client_key:      ENV["NCMB_CLIENT_KEY"]
