@@ -10,13 +10,38 @@ module NCMB
       @@items   = nil
     end
     
+    def columns
+      @@fields.keys
+    end
+    
     def method_missing(name)
-      return @@fields[name.to_sym] if @@fields[name.to_sym]
+      if @@fields[name.to_sym]
+        return @@fields[name.to_sym]
+      else
+        raise NoMethod, "#{name} is not found"
+      end
+    end
+    
+    def call(name)
+      @@fields[name.to_sym] || NoMethod
+    end
+    
+    def each(&block)
+      @@items.each(&block)
+    end
+    
+    def each_with_index(&block)
+      @@items.each_with_index(&block)
     end
     
     def order(field)
       @@queries[:order] = field
       self
+    end
+    
+    def first
+      return @@items.first unless @@items.nil?
+      get(@@queries).first
     end
     
     def limit(count)
