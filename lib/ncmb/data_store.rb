@@ -94,9 +94,11 @@ module NCMB
     end
     
     def post(queries = {})
-      path = "/#{@client.api_version}/classes/#{@@name}"
-      result = @client.post path, queries
-      NCMB::DataStore.new(client, name, result)
+      path = "/#{@@client.api_version}/classes/#{@@name}"
+      result = @@client.post path, queries
+      alc = result[:acl]
+      result.delete(:acl)
+      NCMB::DataStore.new(@@name, result, alc)
     end
   end
 end
