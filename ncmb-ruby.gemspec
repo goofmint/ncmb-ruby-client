@@ -4,12 +4,12 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'ncmb/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "ncmb-ruby-client"
+  spec.name          = "ncmb-ruby"
   spec.version       = Ncmb::VERSION
-  spec.authors       = ["Atsushi Nakatsugawa"]
-  spec.email         = ["atsushi@moongift.jp"]
-  spec.description   = %q{A simple Ruby client for the nifty cloud mobile backend REST API}
-  spec.summary       = %q{A simple Ruby client for the nifty cloud mobile backend REST API}
+  spec.authors       = ["John Lau"]
+  spec.email         = ["jolks@outlook.com"]
+  spec.description   = %q{Forked version of ncmb-ruby-client, a simple Ruby client for the nifty cloud mobile backend REST API}
+  spec.summary       = %q{Forked version of ncmb-ruby-client, a simple Ruby client for the nifty cloud mobile backend REST API}
   spec.homepage      = "http://mb.cloud.nifty.com/"
   spec.license       = "MIT License"
 

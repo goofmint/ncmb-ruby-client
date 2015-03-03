@@ -1,7 +1,17 @@
-ncmb-ruby-client
+ncmb-ruby
 ================
 
-A simple Ruby client for the nifty cloud mobile backend REST API
+Forked version of [ncmb-ruby-client](https://github.com/moongift/ncmb-ruby-client), a simple Ruby client for the nifty cloud mobile backend REST API.
+
+Changes Made
+------------
+* 03/03/2015 - Added PUT and DELETE
+
+Installation
+------------
+``` ruby
+gem 'ncmb-ruby'
+```
 
 Basic Usage
 -----------
