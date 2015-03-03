@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["jolks@outlook.com"]
   spec.description   = %q{Forked version of ncmb-ruby-client, a simple Ruby client for the nifty cloud mobile backend REST API}
   spec.summary       = %q{Forked version of ncmb-ruby-client, a simple Ruby client for the nifty cloud mobile backend REST API}
-  spec.homepage      = "http://mb.cloud.nifty.com/"
+  spec.homepage      = "https://github.com/jolks/ncmb-ruby"
   spec.license       = "MIT License"
 
   spec.files         = `git ls-files`.split($/)
