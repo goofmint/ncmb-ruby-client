@@ -3,4 +3,5 @@ $:.unshift(File.dirname(__FILE__))
 require "ncmb/version"
 require "ncmb/client"
 require "ncmb/data_store"
+require "ncmb/object"
 require "ncmb/push"
