@@ -20,5 +20,10 @@ module NCMB
     def [](key)
       @fields[key]
     end
+
+    def delete
+      path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
+      @@client.delete path, {}
+    end
   end
 end

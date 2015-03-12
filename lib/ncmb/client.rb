@@ -29,6 +29,10 @@ module NCMB
       request :post, path, params
     end
     
+    def delete(path, params)
+      request :delete, path, {}
+    end
+    
     def array2hash(ary)
       new_v = {}
       ary.each do |hash|
@@ -103,6 +107,9 @@ module NCMB
       if method == :get
         path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
         return JSON.parse(http.get(path, headers).body, symbolize_names: true)
+      elsif method == :delete
+        path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
+        http.delete(path, headers)
       else
         return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
       end
