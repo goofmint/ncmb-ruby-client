@@ -88,7 +88,7 @@ module NCMB
       results[:results].each do |result|
         alc = result[:acl]
         result.delete(:acl)
-        items << NCMB::DataStore.new(@@name, result, alc)
+        items << NCMB::Object.new(@@name, result, alc)
       end
       @@items = items
     end
