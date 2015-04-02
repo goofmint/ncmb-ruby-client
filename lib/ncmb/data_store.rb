@@ -27,11 +27,11 @@ module NCMB
     end
     
     def each(&block)
-      @@items.each(&block)
+      (@@items || get(@@queries)).each(&block)
     end
     
     def each_with_index(&block)
-      @@items.each_with_index(&block)
+      (@@items || get(@@queries)).each_with_index(&block)
     end
     
     def order(field)
