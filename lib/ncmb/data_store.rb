@@ -41,7 +41,7 @@ module NCMB
     
     def first
       return @@items.first unless @@items.nil?
-      get(@@queries).first
+      get().first
     end
     
     def limit(count)
@@ -73,10 +73,10 @@ module NCMB
     
     def [](count)
       return @@items[count] unless @@items.nil?
-      get(@@queries)[count]
+      get()[count]
     end
     
-    def get(queries = {})
+    def get(queries = @@queries)
       path = "/#{@@client.api_version}/classes/#{@@name}"
       results = @@client.get path, queries
       return [] unless results
