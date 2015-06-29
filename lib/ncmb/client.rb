@@ -87,7 +87,15 @@ module NCMB
       params = method == :get ? params_base.merge(encode_query(queries)) : params_base
       now ||= Time.now.utc.iso8601
       params = params.merge "X-NCMB-Timestamp" => now
-      params = params.sort_by{|a, b| a.to_s}.to_h
+      if [].respond_to?("to_h") # Array#to_h inpremented over ruby 2.1
+        params = params.sort_by{|a, b| a.to_s}.to_h
+      else
+        sorted_params = {}
+        params = params.sort_by{|a, b| a.to_s}.each {|kv|
+          sorted_params[kv[0]] = kv[1]
+        }
+        params = sorted_params
+      end
       signature_base = []
       signature_base << method.upcase
       signature_base << @domain
