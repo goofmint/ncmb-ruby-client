@@ -10,8 +10,24 @@ Basic Usage
 NCMB.initialize application_key: application_key,  client_key: client_key
 
 @todo = NCMB::DataStore.new 'Todo'
-@todo = @todo.limit(20).count(1).skip(0)
-puts "@todo[0].name #{@todo[0].name}"
+@todo = @todo.limit(20)
+
+@todo.each do |item|
+  puts item[:String]
+  puts "  #{item[:Array]} -> #{item[:Array].class}"
+end
+
+@todo = NCMB::Object.new 'Todo'
+@todo.set('String', 'Test String')
+@todo.set('Integer', 100)
+@todo.set('Boolean', true)
+@todo.set('Array', [1, 2, 3, "Orange", "Tomato"])
+@todo.set('Object', {test1: 'a', test2: 'b'})
+@todo.set('Location', NCMB::GeoPoint.new(50, 30))
+@todo.set('MultipleLine', "test\ntest\n")
+@todo.set('Increment', NCMB::Increment.new(2))
+@todo.set('Date', Time.new(2016, 2, 24, 12, 30, 45))
+@todo.save
 ```
 
 ### Register push notification
