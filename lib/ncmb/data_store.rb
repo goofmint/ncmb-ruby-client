@@ -26,14 +26,6 @@ module NCMB
       end
     end
     
-    def set(name, value)
-      @fields[name] = value
-    end
-    
-    def call(name)
-      @fields[name.to_sym] || NoMethodError
-    end
-    
     def each(&block)
       get.each(&block)
     end
@@ -48,7 +40,6 @@ module NCMB
     end
     
     def first
-      return @items.first unless @items.nil?
       get.first
     end
     
@@ -96,18 +87,10 @@ module NCMB
       results[:results].each do |result|
         alc = result[:acl]
         result.delete(:acl)
-        @items << NCMB::DataStore.new(@name, result, alc)
+        @items << NCMB::Object.new(@name, result, alc)
       end
       @items
     end
     
-    def post
-      path = "/#{@@client.api_version}/classes/#{@name}"
-      result = @@client.post path, @fields
-      alc = result[:acl]
-      result.delete(:acl)
-      NCMB::DataStore.new(@name, result, alc)
-    end
-    alias :save :post
   end
 end
