@@ -3,7 +3,15 @@ require 'openssl'
 require 'base64'
 require "net/http"
 require "uri"
-require 'json'
+require "json"
+
+class Time
+  def to_json(a)
+    v = self.getgm
+    "{\"__type\": \"Date\", \"iso\": \"#{v.iso8601(3)}\"}"
+  end
+end
+
 module NCMB
   DOMAIN = 'mb.api.cloud.nifty.com'
   API_VERSION = '2013-09-01'
@@ -54,20 +62,33 @@ module NCMB
       end
       results
     end
-
+    
+    def change_query(queries = {})
+      results = {}
+      queries.each do |k, v|
+        case v
+        when NCMB::Increment
+          queries[k] = v.amount
+        end
+      end
+      queries
+    end
+    
     def hash2query(queries = {})
       results = {}
       queries.each do |k, v|
-        v = array2hash(v) if v.is_a? Array
-        if v.is_a? Hash
-          results[k.to_s] = v.to_json.to_s
+        # v = array2hash(v) if v.is_a? Array
+        puts "#{k} -> #{v.class}"
+        case v
+        when Hash, TrueClass, FalseClass, Array then
+          results[k.to_s] = v
+        when Time then
         else
           results[k.to_s] = v.to_s
         end
       end
-      results.collect do |key, value|
-        "#{key}=#{value}"
-      end
+      puts results
+      results
     end
     
     def generate_signature(method, path, now = nil, queries = {})
@@ -91,7 +112,6 @@ module NCMB
     def request(method, path, queries = {})
       now = Time.now.utc.iso8601
       signature = generate_signature(method, path, now, queries)
-      query = hash2query(queries).join("&")
       http = Net::HTTP.new(@domain, 443)
       http.use_ssl=true
       headers = {
@@ -100,10 +120,16 @@ module NCMB
         "X-NCMB-Timestamp" => now,
         "Content-Type" => 'application/json'
       }
-      if method == :get
+      # queries = hash2query(queries)
+      case method
+      when :get
+        query = queries.map do |key, value|
+          "#{key}=#{value}"
+        end.join("&")
         path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
         return JSON.parse(http.get(path, headers).body, symbolize_names: true)
-      else
+      when :post
+        queries = change_query(queries)
         return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
       end
     end
