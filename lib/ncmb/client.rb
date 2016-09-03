@@ -36,9 +36,13 @@ module NCMB
     def post(path, params)
       request :post, path, params
     end
+
+    def put(path, params)
+      request :put, path, params
+    end
     
     def delete(path, params)
-      request :delete, path, {}
+      request :delete, path
     end
     
     def array2hash(ary)
@@ -135,6 +139,8 @@ module NCMB
       when :post
         queries = change_query(queries)
         return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
+      when :put
+        return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
       when :delete
         path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
         http.delete(path, headers)
