@@ -6,8 +6,12 @@ module NCMB
       @name    = name
       @alc     = alc
       @fields  = fields
-      @queries = {}
+      @queries = {where: []}
       @items   = nil
+    end
+    
+    def error
+      @error
     end
     
     def new *opt
@@ -58,15 +62,68 @@ module NCMB
       self
     end
     
-    def where(params = {})
-      @queries[:where] = [] unless @queries[:where]
-      if params.size == 1
-        @queries[:where] << params
-      else
-        params.each do |hash|
-          @queries[:where] << hash
+    [
+      {greaterThan: "$gt"},
+      {notEqualTo: "$ne"},
+      {equalTo: nil},
+      {lessThan: "$lt"},
+      {lessThanOrEqualTo: "$lte"},
+      {greaterThanOrEqualTo: "$gte"},
+      {in: "$in"},
+      {notIn: "$nin"},
+      {exists: "$exists"},
+      {regex: "$regex"},
+      {inArray: "$inArray"},
+      {notInArray: "$ninArray"},
+      {allInArray: "$all"},
+    ].each do |m|
+      define_method m.keys.first do |name, value|
+        params = {}
+        if m.values.first.nil?
+          params[name] = value
+        else
+          params[name] = {}
+          params[name][m.values.first] = value
         end
+        @queries[:where] << params
+        self
       end
+    end
+    
+    [
+      {withinKilometers: "$maxDistanceInKilometers"},
+      {withinMiles: "$maxDistanceInMiles"},
+      {withinRadians: "$maxDistanceInRadians"}
+    ].each do |m|
+      define_method m.keys.first do |name, geo, value|
+        params = {}
+        params[name] = {
+          "$nearSphere": geo,
+        }
+        params[name][m.values.first] = value
+        @queries[:where] << params
+        self
+      end
+    end
+      
+    def withinSquare(name, geo1, geo2)
+      params = {}
+      params[name] = {
+        "$within": {
+          "$box": [
+            geo1,
+            geo2
+          ]
+        }
+      }
+      @queries[:where] << params
+      self
+    end
+    
+    def where(name, value)
+      params = {}
+      params[name] = value
+      @queries[:where] << params
       self
     end
     
@@ -81,16 +138,23 @@ module NCMB
       return [] unless results
       if results[:error] && results[:error] != ""
         @error = results
-        raise 'error'
+        raise NCMB::FetchError
       end
       @items = []
       results[:results].each do |result|
+        result.each do |key, field|
+          if field.is_a?(Hash) && field[:__type] == 'GeoPoint'
+            result[key] = NCMB::GeoPoint.new(field[:latitude], field[:longitude])
+          end
+          if field.is_a?(Hash) && field[:__type] == 'Date'
+            result[key] = Time.parse(field[:iso])
+          end
+        end
         alc = result[:acl]
         result.delete(:acl)
         @items << NCMB::Object.new(@name, result, alc)
       end
       @items
-    end
-    
+    end    
   end
 end
