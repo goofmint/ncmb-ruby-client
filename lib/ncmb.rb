@@ -6,8 +6,8 @@ require 'openssl'
 require 'base64'
 require "net/http"
 require "uri"
+require "erb"
 require "json"
-require 'pg_query'
 
 require "ncmb/version"
 require "ncmb/client"
@@ -16,3 +16,4 @@ require "ncmb/object"
 require "ncmb/push"
 require "ncmb/geo_point"
 require "ncmb/increment"
+require "ncmb/error"

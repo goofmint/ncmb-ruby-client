@@ -48,6 +48,7 @@ module NCMB
           new_v = [hash]
         end
       end
+      new_v = new_v.sort_by{|a, b| a.to_s}.to_h
       new_v
     end
     
@@ -55,11 +56,8 @@ module NCMB
       results = {}
       queries.each do |k, v|
         v = array2hash(v) if v.is_a? Array
-        if v.is_a? Hash
-          results[k.to_s] = URI.escape(v.to_json.to_s, /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
-        else
-          results[k.to_s] = URI.escape(v.to_s, /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
-        end
+        value = URI.encode(v.is_a?(Hash) ? v.to_json : v.to_s).gsub("[", "%5B").gsub(":", "%3A").gsub("]", "%5D")
+        results[k.to_s] = value
       end
       results
     end
@@ -124,10 +122,10 @@ module NCMB
       # queries = hash2query(queries)
       case method
       when :get
-        query = queries.map do |key, value|
+        query = encode_query(queries).map do |key, value|
           "#{key}=#{value}"
         end.join("&")
-        path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
+        path = path + (query == '' ? "" : "?"+query)
         return JSON.parse(http.get(path, headers).body, symbolize_names: true)
       when :post
         queries = change_query(queries)
