@@ -1,10 +1,3 @@
-require 'time'
-require 'openssl'
-require 'base64'
-require "net/http"
-require "uri"
-require "json"
-
 class Time
   def to_json(a)
     v = self.getgm

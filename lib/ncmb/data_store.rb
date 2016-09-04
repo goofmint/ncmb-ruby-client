@@ -60,6 +60,9 @@ module NCMB
     
     def where(params = {})
       @queries[:where] = [] unless @queries[:where]
+      if params.is_a? String
+        params = NCMB::Query.new(params).to_hash
+      puts params
       if params.size == 1
         @queries[:where] << params
       else
