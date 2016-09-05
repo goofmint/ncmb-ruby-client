@@ -38,6 +38,17 @@ module NCMB
     end
     alias :save :post
     
+    def put
+      path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
+      params = @fields
+      params.delete :objectId
+      params.delete :createDate
+      params.delete :updateDate
+      result = @@client.put path, params
+      @fields[:updateDate] = result[:updateDate]
+    end
+    alias :update :put
+    
     def delete
       path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
       @@client.delete path, {}

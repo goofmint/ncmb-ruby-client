@@ -14,8 +14,8 @@ module NCMB
       @error
     end
     
-    def new *opt
-      initialize opt
+    def new opt = {}
+      NCMB::Object.new @name, opt
     end
     
     def columns
@@ -52,8 +52,8 @@ module NCMB
       self
     end
     
-    def count(count)
-      @queries[:count] = count
+    def count
+      @queries[:count] = 1
       self
     end
     
@@ -140,6 +140,9 @@ module NCMB
         @error = results
         raise NCMB::FetchError
       end
+      if @queries[:count] == 1
+        return results[:count]
+      end
       @items = []
       results[:results].each do |result|
         result.each do |key, field|
@@ -155,6 +158,22 @@ module NCMB
         @items << NCMB::Object.new(@name, result, alc)
       end
       @items
-    end    
+    end
+    
+    def delete_all
+      max = 1000
+      count = self.limit(max).count().get
+      if count == 0
+        return true
+      end
+      @queries.delete :count
+      self.limit(max).each do |item|
+        item.delete
+      end
+      if count > max
+        return delete_all
+      end
+      true
+    end
   end
 end
