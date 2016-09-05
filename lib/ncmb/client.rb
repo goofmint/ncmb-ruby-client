@@ -133,8 +133,8 @@ module NCMB
       when :put
         return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
       when :delete
-        path = path + URI.escape((query == '' ? "" : "?"+query), /[^-_.!~*'()a-zA-Z\d;\/?@&=+$,#]/)
         http.delete(path, headers)
+        return {}
       end
     end
   end
