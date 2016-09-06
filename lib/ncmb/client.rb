@@ -128,21 +128,27 @@ module NCMB
         "Content-Type" => 'application/json'
       }
       # queries = hash2query(queries)
-      case method
-      when :get
-        query = encode_query(queries).map do |key, value|
-          "#{key}=#{value}"
-        end.join("&")
-        path = path + (query == '' ? "" : "?"+query)
-        return JSON.parse(http.get(path, headers).body, symbolize_names: true)
-      when :post
-        queries = change_query(queries)
-        return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
-      when :put
-        return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
-      when :delete
-        http.delete(path, headers)
-        return {}
+      begin
+        case method
+        when :get
+          query = encode_query(queries).map do |key, value|
+            "#{key}=#{value}"
+          end.join("&")
+          path = path + (query == '' ? "" : "?"+query)
+          return JSON.parse(http.get(path, headers).body, symbolize_names: true)
+        when :post
+          queries = change_query(queries)
+          return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
+        when :put
+          return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
+        when :delete
+          response = http.delete(path, headers).body
+          return response == "" ? true : JSON.parse(response, symbolize_names: true)
+        end
+      rescue => e
+        puts "Error"
+        puts e
+        return false
       end
     end
   end

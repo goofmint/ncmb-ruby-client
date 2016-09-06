@@ -159,15 +159,21 @@ module NCMB
       end
       @items
     end
+    alias :all :get
+    
+    def queries
+      @queries
+    end
     
     def delete_all
       max = 1000
-      count = self.limit(max).count().get
+      dataStore = NCMB::DataStore.new(@name)
+      count = dataStore.limit(max).count().all
       if count == 0
         return true
       end
-      @queries.delete :count
-      self.limit(max).each do |item|
+      dataStore.queries.delete :count
+      dataStore.each do |item|
         item.delete
       end
       if count > max

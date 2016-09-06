@@ -32,9 +32,8 @@ module NCMB
     def post
       path = "/#{@@client.api_version}/classes/#{@name}"
       result = @@client.post path, @fields
-      alc = result[:acl]
-      result.delete(:acl)
-      NCMB::Object.new(@name, result, alc)
+      @fields.merge!(result)
+      self
     end
     alias :save :post
     
@@ -46,12 +45,23 @@ module NCMB
       params.delete :updateDate
       result = @@client.put path, params
       @fields[:updateDate] = result[:updateDate]
+      self
     end
     alias :update :put
     
     def delete
       path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
-      @@client.delete path, {}
+      response = @@client.delete path, {}
+      if response == true
+        return true
+      else
+        @error = response
+        return false
+      end
+    end
+    
+    def error
+      @error
     end
   end
 end

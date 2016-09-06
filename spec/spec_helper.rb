@@ -4,3 +4,8 @@ $:.unshift(File.dirname(__FILE__))
   require f
 end
 require "ncmb"
+require 'simplecov'
+require 'simplecov-gem-profile'
+
+SimpleCov.minimum_coverage 90
+SimpleCov.start 'gem'
