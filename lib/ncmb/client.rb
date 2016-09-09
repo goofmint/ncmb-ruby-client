@@ -11,6 +11,8 @@ module NCMB
   @application_key = nil
   @client_key = nil
   @@client = nil
+  @@current_user = nil
+  @@last_error = nil
   
   class Client
     include NCMB
@@ -22,20 +24,20 @@ module NCMB
       @client_key      = params[:client_key]
     end
     
-    def get(path, params)
-      request :get, path, params
+    def get(path, params = {}, session_key = nil)
+      request :get, path, params, session_key
     end
     
-    def post(path, params)
-      request :post, path, params
+    def post(path, params = {}, session_key = nil)
+      request :post, path, params, session_key
     end
 
-    def put(path, params)
-      request :put, path, params
+    def put(path, params = {}, session_key = nil)
+      request :put, path, params, session_key
     end
     
-    def delete(path, params)
-      request :delete, path
+    def delete(path, params = {}, session_key = nil)
+      request :delete, path, params, session_key
     end
     
     def array2hash(ary)
@@ -116,7 +118,7 @@ module NCMB
       signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
     end
     
-    def request(method, path, queries = {})
+    def request(method, path, queries = {}, session_key = nil)
       now = Time.now.utc.iso8601
       signature = generate_signature(method, path, now, queries)
       http = Net::HTTP.new(@domain, 443)
@@ -127,7 +129,11 @@ module NCMB
         "X-NCMB-Timestamp" => now,
         "Content-Type" => 'application/json'
       }
+      if session_key
+        headers['X-NCMB-Apps-Session-Token'] = session_key
+      end
       # queries = hash2query(queries)
+      json = nil
       begin
         case method
         when :get
@@ -135,21 +141,25 @@ module NCMB
             "#{key}=#{value}"
           end.join("&")
           path = path + (query == '' ? "" : "?"+query)
-          return JSON.parse(http.get(path, headers).body, symbolize_names: true)
+          json = JSON.parse(http.get(path, headers).body, symbolize_names: true)
         when :post
           queries = change_query(queries)
-          return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
+          json =  JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
         when :put
-          return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
+          json = JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
         when :delete
           response = http.delete(path, headers).body
-          return response == "" ? true : JSON.parse(response, symbolize_names: true)
+          return true if response == ""
+          json = JSON.parse(response, symbolize_names: true)
         end
       rescue => e
-        puts "Error"
-        puts e
-        return false
+        @@last_error =  e
+        raise NCMB::APIError.new(e.to_s)
       end
+      if json[:error] != nil
+        raise NCMB::APIError.new(json[:error])
+      end
+      json
     end
   end
   
@@ -160,5 +170,19 @@ module NCMB
     }
     defaulted.merge!(params)
     @@client = Client.new(defaulted)
+  end
+  
+  def NCMB.CurrentUser
+    @@current_user
+  end
+  
+  class APIError < StandardError
+    def initialize(msg)
+      @message = msg
+    end
+    
+    def message
+      @message
+    end
   end
 end

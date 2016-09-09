@@ -7,7 +7,11 @@ module NCMB
       @alc     = alc
       @fields  = fields
     end
-
+    
+    def fields
+      @fields
+    end
+    
     def method_missing(name)
       sym = name.to_sym
       if @fields.has_key?(sym)
@@ -18,7 +22,7 @@ module NCMB
     end
 
     def set(name, value)
-      @fields[name] = value
+      @fields[name.to_sym] = value
     end
     
     def call(name)
@@ -55,13 +59,13 @@ module NCMB
       if response == true
         return true
       else
-        @error = response
+        @@last_error = response
         return false
       end
     end
     
     def error
-      @error
+      @@last_error
     end
   end
 end
