@@ -8,7 +8,9 @@ module NCMB
       @fields  = fields
       @queries = {where: []}
       @items   = nil
+      @path    = nil
     end
+    attr_accessor :path
     
     def error
       @error
@@ -131,9 +133,13 @@ module NCMB
       get[count]
     end
     
+    def path
+      return @path if @path
+      path = "/#{@@client.api_version}/classes/#{@name}"
+    end
+    
     def get
       return @items unless @items.nil?
-      path = "/#{@@client.api_version}/classes/#{@name}"
       results = @@client.get path, @queries
       return [] unless results
       if results[:error] && results[:error] != ""
@@ -153,9 +159,7 @@ module NCMB
             result[key] = Time.parse(field[:iso])
           end
         end
-        alc = result[:acl]
-        result.delete(:acl)
-        @items << NCMB::Object.new(@name, result, alc)
+        @items << NCMB::Object.new(@name, result)
       end
       @items
     end
@@ -174,7 +178,11 @@ module NCMB
       end
       dataStore.queries.delete :count
       dataStore.each do |item|
-        item.delete
+        begin
+          item.delete if item.deletable?
+        rescue
+          puts "Can't delete #{item.objectId}"
+        end
       end
       if count > max
         return delete_all

@@ -24,20 +24,20 @@ module NCMB
       @client_key      = params[:client_key]
     end
     
-    def get(path, params = {}, session_key = nil)
-      request :get, path, params, session_key
+    def get(path, params = {})
+      request :get, path, params
     end
     
-    def post(path, params = {}, session_key = nil)
-      request :post, path, params, session_key
+    def post(path, params = {})
+      request :post, path, params
     end
 
-    def put(path, params = {}, session_key = nil)
-      request :put, path, params, session_key
+    def put(path, params = {})
+      request :put, path, params
     end
     
-    def delete(path, params = {}, session_key = nil)
-      request :delete, path, params, session_key
+    def delete(path, params = {})
+      request :delete, path, params
     end
     
     def array2hash(ary)
@@ -118,7 +118,7 @@ module NCMB
       signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
     end
     
-    def request(method, path, queries = {}, session_key = nil)
+    def request(method, path, queries = {})
       now = Time.now.utc.iso8601
       signature = generate_signature(method, path, now, queries)
       http = Net::HTTP.new(@domain, 443)
@@ -129,12 +129,11 @@ module NCMB
         "X-NCMB-Timestamp" => now,
         "Content-Type" => 'application/json'
       }
-      if session_key
-        headers['X-NCMB-Apps-Session-Token'] = session_key
+      if NCMB.CurrentUser
+        headers['X-NCMB-Apps-Session-Token'] = NCMB.CurrentUser.sessionToken
       end
       # queries = hash2query(queries)
       json = nil
-      begin
         case method
         when :get
           query = encode_query(queries).map do |key, value|
@@ -152,6 +151,7 @@ module NCMB
           return true if response == ""
           json = JSON.parse(response, symbolize_names: true)
         end
+        begin
       rescue => e
         @@last_error =  e
         raise NCMB::APIError.new(e.to_s)

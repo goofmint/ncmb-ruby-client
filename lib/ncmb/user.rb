@@ -2,12 +2,11 @@ module NCMB
   class User < NCMB::Object
     include NCMB
     
-    def initialize(params = {}, alc = nil)
-      super('users', params, alc)
+    def initialize(params = {})
+      super('users', params)
     end
     
     def signUp
-      path = "/#{@@client.api_version}/#{@name}"
       begin
         result = @@client.post path, @fields
       rescue => e
@@ -19,8 +18,11 @@ module NCMB
       self
     end
     
+    def base_path
+      path = "/#{@@client.api_version}/#{@name}"
+    end
+    
     def put
-      path = "/#{@@client.api_version}/#{@name}/#{@fields[:objectId]}"
       params = @fields
       session_key = params[:sessionToken]
       [:objectId, :createDate, :updateDate, :sessionToken, :password].each do |name|
@@ -33,7 +35,6 @@ module NCMB
     alias :update :put
     
     def delete
-      path = "/#{@@client.api_version}/#{@name}/#{@fields[:objectId]}"
       response = @@client.delete path, {}, @fields[:sessionToken]
       if response == true
         @@current_user = nil

@@ -8,7 +8,11 @@ module NCMB
     end
     
     def to_json(a = "")
-      "{\"__type\": \"GeoPoint\", \"longitude\": #{@longitude}, \"latitude\": #{@latitude}}"
+      {
+        "__type": "GeoPoint",
+        "longitude": @longitude,
+        "latitude": @latitude
+      }.to_json
     end
     
     def to_s

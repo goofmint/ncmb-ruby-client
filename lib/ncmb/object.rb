@@ -2,9 +2,9 @@ module NCMB
   class Object
     include NCMB
 
-    def initialize(name, fields = {}, alc = "")
+    def initialize(name, fields = {})
       @name    = name
-      @alc     = alc
+      fields[:acl] = NCMB::Acl.new(fields[:acl])
       @fields  = fields
     end
     
@@ -12,12 +12,17 @@ module NCMB
       @fields
     end
     
-    def method_missing(name)
-      sym = name.to_sym
-      if @fields.has_key?(sym)
-        return @fields[sym]
+    def method_missing(name, value = nil)
+      if name =~ /.*=$/
+        sym = name.to_s.gsub(/(.*?)=$/, '\1').to_sym
+        @fields[sym] = value
       else
-        raise NoMethodError, "#{name} is not found"
+        sym = name.to_sym
+        if @fields.has_key?(sym)
+          return @fields[sym]
+        else
+          raise NoMethodError, "#{name} is not found"
+        end
       end
     end
 
@@ -32,9 +37,26 @@ module NCMB
     def [](key)
       @fields[key]
     end
-
+    
+    def deletable?
+      if self.acl['*'.to_sym][:write] == true
+        return true
+      end
+      return false unless NCMB.CurrentUser
+      return false unless self.acl[NCMB.CurrentUser.objectId.to_sym]
+      return false unless self.acl[NCMB.CurrentUser.objectId.to_sym][:write]
+      true
+    end
+    
+    def base_path
+      "/#{@@client.api_version}/classes/#{@name}"
+    end
+    
+    def path
+      "#{base_path}/#{@fields[:objectId] || '' }"
+    end
+    
     def post
-      path = "/#{@@client.api_version}/classes/#{@name}"
       result = @@client.post path, @fields
       @fields.merge!(result)
       self
@@ -42,7 +64,6 @@ module NCMB
     alias :save :post
     
     def put
-      path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
       params = @fields
       params.delete :objectId
       params.delete :createDate
@@ -54,7 +75,6 @@ module NCMB
     alias :update :put
     
     def delete
-      path = "/#{@@client.api_version}/classes/#{@name}/#{@fields[:objectId]}"
       response = @@client.delete path, {}
       if response == true
         return true

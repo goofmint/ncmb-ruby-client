@@ -9,7 +9,7 @@ NCMB.initialize application_key: yaml['application_key'],  client_key: yaml['cli
 example = NCMB::DataStore.new 'Example'
 example.delete_all
 
-10.times do |i|
+9.times do |i|
   item = example.new
   item.set('String', "テスト#{i}00")
   item.set('Integer', i)

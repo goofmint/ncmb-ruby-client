@@ -26,7 +26,3 @@ if @user.signUp
 else
   puts "User create failed. #{@user.error.message}"
 end
-
-
-
-
