@@ -133,6 +133,21 @@ module NCMB
         headers['X-NCMB-Apps-Session-Token'] = NCMB.CurrentUser.sessionToken
       end
       # queries = hash2query(queries)
+      if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
+        http = Net::HTTP::Post.new(uri.request_uri)
+        
+        boundary = "myboundary"
+        headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+        post_body = []
+        post_body < < "--#{boundary}rn"
+        post_body < < "Content-Disposition: form-data; name="datafile"; filename="#{queries[:fileName]}"rn"
+        post_body < < "Content-Type: text/plainrn"
+        post_body < < "rn"
+        post_body < < queries[:file].read
+        post_body < < "rn--#{boundary}--rn"
+        http.body = queries[:file].read
+        queries.delete :file
+      end
       json = nil
         case method
         when :get

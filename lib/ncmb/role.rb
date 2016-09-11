@@ -10,6 +10,7 @@ module NCMB
           roleName: name
         }
       end
+      @fields[:acl] = NCMB::Acl.new(@fields[:acl])
     end
     
     def self.find_or_create(name)
@@ -23,13 +24,8 @@ module NCMB
       "role:#{@fields[:roleName]}"
     end
     
-    def to_json
-      
-    end
-    
     def base_path
       path = "/#{@@client.api_version}/roles"
     end
-    
   end
 end
