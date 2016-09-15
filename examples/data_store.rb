@@ -21,6 +21,7 @@ example.delete_all
   item.set('Increment', NCMB::Increment.new(i + 1))
   item.set('Date', Time.now)
   item.save
+  puts "#{item.objectId} saved."
   sleep(2)
 end
 

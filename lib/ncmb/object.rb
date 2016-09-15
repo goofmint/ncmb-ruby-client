@@ -64,11 +64,12 @@ module NCMB
     alias :save :post
     
     def put
+      put_path = path
       params = @fields
       params.delete :objectId
       params.delete :createDate
       params.delete :updateDate
-      result = @@client.put path, params
+      result = @@client.put put_path, params
       @fields[:updateDate] = result[:updateDate]
       self
     end

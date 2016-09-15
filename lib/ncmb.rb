@@ -8,6 +8,7 @@ require "net/http"
 require "uri"
 require "erb"
 require "json"
+require 'securerandom'
 
 require "ncmb/version"
 require "ncmb/client"

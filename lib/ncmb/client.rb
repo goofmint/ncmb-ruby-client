@@ -118,6 +118,22 @@ module NCMB
       signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
     end
     
+    def make_boundary(boundary, queries)
+      post_body = []
+      post_body << "--#{boundary}"
+      post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"#{queries[:fileName]}\""
+      post_body << "Content-Type: #{queries['mime-type'.to_sym]}"
+      post_body << ""
+      post_body << queries[:file].read
+      post_body << ""
+      post_body << "--#{boundary}"
+      post_body << "Content-Disposition: form-data; name=\"acl\""
+      post_body << ""
+      post_body << queries[:acl].to_json
+      post_body << "--#{boundary}--"
+      post_body.join("\r\n")
+    end
+    
     def request(method, path, queries = {})
       now = Time.now.utc.iso8601
       signature = generate_signature(method, path, now, queries)
@@ -133,22 +149,8 @@ module NCMB
         headers['X-NCMB-Apps-Session-Token'] = NCMB.CurrentUser.sessionToken
       end
       # queries = hash2query(queries)
-      if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
-        http = Net::HTTP::Post.new(uri.request_uri)
-        
-        boundary = "myboundary"
-        headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
-        post_body = []
-        post_body < < "--#{boundary}rn"
-        post_body < < "Content-Disposition: form-data; name="datafile"; filename="#{queries[:fileName]}"rn"
-        post_body < < "Content-Type: text/plainrn"
-        post_body < < "rn"
-        post_body < < queries[:file].read
-        post_body < < "rn--#{boundary}--rn"
-        http.body = queries[:file].read
-        queries.delete :file
-      end
       json = nil
+      begin
         case method
         when :get
           query = encode_query(queries).map do |key, value|
@@ -157,16 +159,38 @@ module NCMB
           path = path + (query == '' ? "" : "?"+query)
           json = JSON.parse(http.get(path, headers).body, symbolize_names: true)
         when :post
-          queries = change_query(queries)
-          json =  JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
+          req = Net::HTTP::Post.new(path)
+          if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
+            boundary = SecureRandom.uuid
+            req.body = make_boundary(boundary, queries)
+            headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+          else
+            queries = change_query(queries)
+            req.body = queries.to_json
+          end
+          headers.each do |key, value|
+            req[key] = value
+          end
+          json =  JSON.parse(http.request(req).body, symbolize_names: true)
         when :put
-          json = JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
+          req = Net::HTTP::Put.new(path)
+          if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
+            boundary = SecureRandom.uuid
+            req.body = make_boundary(boundary, queries)
+            headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+          else
+            queries = change_query(queries)
+            req.body = queries.to_json
+          end
+          headers.each do |key, value|
+            req[key] = value
+          end
+          json =  JSON.parse(http.request(req).body, symbolize_names: true)
         when :delete
           response = http.delete(path, headers).body
           return true if response == ""
           json = JSON.parse(response, symbolize_names: true)
         end
-        begin
       rescue => e
         @@last_error =  e
         raise NCMB::APIError.new(e.to_s)
