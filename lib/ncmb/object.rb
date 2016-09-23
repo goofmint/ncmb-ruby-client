@@ -12,6 +12,10 @@ module NCMB
       @fields
     end
     
+    def ClassName
+      @name
+    end
+    
     def method_missing(name, value = nil)
       if name =~ /.*=$/
         sym = name.to_s.gsub(/(.*?)=$/, '\1').to_sym
@@ -56,7 +60,29 @@ module NCMB
       "#{base_path}/#{@fields[:objectId] || '' }"
     end
     
+    def saved?
+      @fields[:objectId] != nil
+    end
+    
     def post
+      @fields.each do |key, field|
+        if field.is_a?(NCMB::Object)
+          field.save unless field.saved?
+          @fields[key] = {
+            __type: "Pointer",
+            className: field.ClassName,
+            objectId: field.objectId
+          }
+        end
+        if field.is_a?(Array) && field[0].is_a?(NCMB::Object)
+          relation = NCMB::Relation.new
+          field.each do |sub_field|
+            sub_field.save unless sub_field.saved?
+            relation << sub_field
+          end
+          @fields[key] = relation
+        end
+      end
       result = @@client.post path, @fields
       @fields.merge!(result)
       self

@@ -1,5 +1,5 @@
 module NCMB
-  class Acl < NCMB::Object
+  class Acl
     include NCMB
     
     def initialize(params = nil)
