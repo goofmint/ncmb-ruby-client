@@ -157,7 +157,12 @@ module NCMB
             "#{key}=#{value}"
           end.join("&")
           path = path + (query == '' ? "" : "?"+query)
-          json = JSON.parse(http.get(path, headers).body, symbolize_names: true)
+          rp = Regexp.new "/#{NCMB::API_VERSION}/files/.*"
+          if path =~ rp
+            json = http.get(path, headers).body
+          else
+            json = JSON.parse(http.get(path, headers).body, symbolize_names: true)
+          end
         when :post
           req = Net::HTTP::Post.new(path)
           if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
@@ -195,7 +200,7 @@ module NCMB
         @@last_error =  e
         raise NCMB::APIError.new(e.to_s)
       end
-      if json[:error] != nil
+      if json.is_a?(Hash) && json[:error] != nil
         raise NCMB::APIError.new(json[:error])
       end
       json

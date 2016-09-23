@@ -74,11 +74,19 @@ module NCMB
     
     def path
       return @path if @path
-      path = "/#{@@client.api_version}/classes/#{@name}"
+      if ["file", "user", "push", "installation"].include? @name
+        if @name == "push"
+          "/#{@@client.api_version}/#{@name}"
+        else
+          "/#{@@client.api_version}/#{@name}s"
+        end
+      else
+        "/#{@@client.api_version}/classes/#{@name}"
+      end
     end
     
     def get
-      return @items unless @items.nil?
+      # return @items unless @items.nil?
       results = @@client.get path, @queries
       return [] unless results
       if results[:error] && results[:error] != ""

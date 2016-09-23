@@ -8,6 +8,7 @@ module NCMB
         @fields[:fileName] = File.basename(file_path)
         @fields['mime-type'.to_sym] = MIME::Types.type_for(file_path)[0]
       end
+      @content = nil
     end
     
     def save
@@ -15,6 +16,10 @@ module NCMB
       super
     end
     alias :update :save
+    
+    def get
+      @content = @@client.get path
+    end
     
     def path
       "#{base_path}/#{@fields[:fileName]}"
