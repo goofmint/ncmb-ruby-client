@@ -1,19 +1,21 @@
+# frozen_string_literal: true
+
 module NCMB
   module Query
     [
-      {greaterThan: "$gt"},
-      {notEqualTo: "$ne"},
+      {greaterThan: '$gt'},
+      {notEqualTo: '$ne'},
       {equalTo: nil},
-      {lessThan: "$lt"},
-      {lessThanOrEqualTo: "$lte"},
-      {greaterThanOrEqualTo: "$gte"},
-      {in: "$in"},
-      {notIn: "$nin"},
-      {exists: "$exists"},
-      {regex: "$regex"},
-      {inArray: "$inArray"},
-      {notInArray: "$ninArray"},
-      {allInArray: "$all"},
+      {lessThan: '$lt'},
+      {lessThanOrEqualTo: '$lte'},
+      {greaterThanOrEqualTo: '$gte'},
+      {in: '$in'},
+      {notIn: '$nin'},
+      {exists: '$exists'},
+      {regex: '$regex'},
+      {inArray: '$inArray'},
+      {notInArray: '$ninArray'},
+      {allInArray: '$all'},
     ].each do |m|
       define_method m.keys.first do |name, value|
         params = {}
@@ -29,14 +31,14 @@ module NCMB
     end
 
     [
-      {withinKilometers: "$maxDistanceInKilometers"},
-      {withinMiles: "$maxDistanceInMiles"},
-      {withinRadians: "$maxDistanceInRadians"}
+      {withinKilometers: '$maxDistanceInKilometers'},
+      {withinMiles: '$maxDistanceInMiles'},
+      {withinRadians: '$maxDistanceInRadians'}
     ].each do |m|
       define_method m.keys.first do |name, geo, value|
         params = {}
         params[name] = {
-          "$nearSphere": geo,
+          '$nearSphere': geo,
         }
         params[name][m.values.first] = value
         @queries[@search_key] << params
@@ -47,8 +49,8 @@ module NCMB
     def withinSquare(name, geo1, geo2)
       params = {}
       params[name] = {
-        "$within": {
-          "$box": [
+        '$within': {
+          '$box': [
             geo1,
             geo2
           ]

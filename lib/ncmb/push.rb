@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NCMB
   class Push < NCMB::Object
     include NCMB

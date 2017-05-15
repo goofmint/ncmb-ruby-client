@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Time
   def to_json(a)
     v = self.getgm

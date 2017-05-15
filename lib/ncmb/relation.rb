@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NCMB
   class Relation < Array
     include NCMB
@@ -6,16 +8,16 @@ module NCMB
       
     end
     
-    def to_json(a = "")
+    def to_json(a = '')
       params = {
-        "__op": "AddRelation"
+        '__op': 'AddRelation'
       }
-      params["objects"] = []
+      params['objects'] = []
       self.each do |obj|
-        params["objects"] << {
-          "__type": "Pointer",
-          "className": obj.ClassName,
-          "objectId": obj.objectId
+        params['objects'] << {
+          '__type': 'Pointer',
+          'className': obj.ClassName,
+          'objectId': obj.objectId
         }
       end
       params.to_json

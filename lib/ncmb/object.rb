@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NCMB
   class Object
     include NCMB
@@ -69,7 +71,7 @@ module NCMB
         if field.is_a?(NCMB::Object)
           field.save unless field.saved?
           @fields[key] = {
-            __type: "Pointer",
+            __type: 'Pointer',
             className: field.ClassName,
             objectId: field.objectId
           }

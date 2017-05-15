@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'mime/types'
 module NCMB
   class NFile < NCMB::Object

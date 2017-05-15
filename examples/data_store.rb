@@ -7,7 +7,10 @@ require 'rubygems'
 require 'ncmb'
 require 'yaml'
 yaml = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'setting.yml'))
-NCMB.initialize application_key: yaml['application_key'],  client_key: yaml['client_key']
+NCMB.initialize(
+  application_key: yaml['application_key'],
+  client_key: yaml['client_key']
+)
 
 example = NCMB::DataStore.new 'Example'
 example.delete_all
