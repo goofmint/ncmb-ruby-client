@@ -1,5 +1,8 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'

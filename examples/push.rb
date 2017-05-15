@@ -1,5 +1,8 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
@@ -9,10 +12,10 @@ NCMB.initialize application_key: yaml['application_key'],  client_key: yaml['cli
 @push = NCMB::Push.new
 @push.immediateDeliveryFlag = true
 @push.target = ['ios']
-@push.message = "This is test message"
-@push.deliveryExpirationTime = "3 day"
+@push.message = 'This is test message'
+@push.deliveryExpirationTime = '3 day'
 if @push.save
-  puts "Push save successful."
+  puts 'Push save successful.'
 else
-  puts "Push save faild."
+  puts 'Push save faild.'
 end

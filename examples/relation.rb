@@ -1,5 +1,8 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
@@ -11,8 +14,8 @@ Food = NCMB::DataStore.new 'Food'
 Basket = NCMB::DataStore.new('Basket')
 basket = Basket.new
 basket.foods = []
-basket.foods << Food.new(name: "banana", type: "fruit")
-basket.foods << Food.new(name: "pear", type: "fruit")
+basket.foods << Food.new(name: 'banana', type: 'fruit')
+basket.foods << Food.new(name: 'pear', type: 'fruit')
 
 # relation = NCMB::Relation.new
 # relation << Food.new(name: "banana", type: "fruit", objectId: "test1")

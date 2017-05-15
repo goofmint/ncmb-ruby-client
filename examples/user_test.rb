@@ -1,5 +1,8 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
@@ -20,8 +23,8 @@ end
 @user.set('userName', 'testUser2')
 @user.set('password', 'testPassword2')
 if @user.signUp
-  puts "User create successful."
-  @user.set("Hello", "World")
+  puts 'User create successful.'
+  @user.set('Hello', 'World')
   @user.update
 else
   puts "User create failed. #{@user.error.message}"

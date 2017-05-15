@@ -1,16 +1,22 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
 yaml = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'setting.yml'))
-NCMB.initialize application_key: yaml['application_key'],  client_key: yaml['client_key']
+NCMB.initialize(
+  application_key: yaml['application_key'],
+  client_key: yaml['client_key']
+)
 
 @users = []
 
 @ids = [
-  {id: 'testUser1', password: 'testPassword1'},
-  {id: 'testUser2', password: 'testPassword2'}
+  { id: 'testUser1', password: 'testPassword1' },
+  { id: 'testUser2', password: 'testPassword2' }
 ]
 @ids.each do |hash|
   @user = NCMB::User.login(hash[:id], hash[:password])
@@ -37,7 +43,7 @@ end
 @item.acl.public('write', false)
 @item.acl.user(@users[0], 'read', true)
 @item.acl.user(@users[0], 'write', true)
-@role = NCMB::Role.find_or_create("manager2")
+@role = NCMB::Role.find_or_create('manager2')
 
 @item.acl.role(@role, 'read', true)
 @item.acl.role(@role, 'write', true)
