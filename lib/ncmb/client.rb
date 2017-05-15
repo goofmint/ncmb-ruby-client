@@ -115,7 +115,7 @@ module NCMB
       signature_base << @domain
       signature_base << path
       signature_base << params.collect{|k,v| "#{k}=#{v}"}.join("&")
-      signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
+      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
     end
     
     def make_boundary(boundary, queries)

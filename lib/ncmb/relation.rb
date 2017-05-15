@@ -8,7 +8,7 @@ module NCMB
     
     def to_json(a = "")
       params = {
-        "__op": "AddRelation",
+        "__op": "AddRelation"
       }
       params["objects"] = []
       self.each do |obj|

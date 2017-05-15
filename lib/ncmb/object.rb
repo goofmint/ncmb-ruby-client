@@ -64,7 +64,7 @@ module NCMB
       @fields[:objectId] != nil
     end
     
-    def post
+    def convert_params
       @fields.each do |key, field|
         if field.is_a?(NCMB::Object)
           field.save unless field.saved?
@@ -83,6 +83,11 @@ module NCMB
           @fields[key] = relation
         end
       end
+    end
+    
+    def post
+      return self.put if saved?
+      convert_params
       result = @@client.post path, @fields
       @fields.merge!(result)
       self
@@ -90,6 +95,8 @@ module NCMB
     alias :save :post
     
     def put
+      return self.post unless saved?
+      convert_params
       put_path = path
       params = @fields
       params.delete :objectId

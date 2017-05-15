@@ -7,7 +7,7 @@ module NCMB
     end
     
     def push
-      return NCMB::Push.new(client
+      return NCMB::Push.new(client)
     end
   end
 end

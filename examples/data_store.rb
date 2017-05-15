@@ -50,6 +50,7 @@ begin
     # item.update
   end
 rescue NCMB::FetchError => e
+  puts e
   puts example.error
 end
 
