@@ -25,7 +25,7 @@ Benchmark.bm 10 do |r|
       item.set('Integer', i)
       item.set('Boolean', true)
       item.set('Array', [i, i * 2, i * 3, 'Orange', 'Tomato'])
-      item.set('Object', {test1: 'a', test2: 'b'})
+      item.set('Object', { test1: 'a', test2: 'b' })
       item.set('Location', NCMB::GeoPoint.new(30, 50))
       item.set('MultipleLine', "test\ntest\n")
       item.set('Increment', NCMB::Increment.new(i + 1))
@@ -41,4 +41,3 @@ Benchmark.bm 10 do |r|
     end
   end
 end
-

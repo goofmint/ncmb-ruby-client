@@ -13,13 +13,11 @@ yaml = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'setting.yml'))
 )
 
 # puts @client.application_key
-puts @client.generate_signature(:get, 
+puts @client.generate_signature(
+  :get,
   '/2013-09-01/classes/TestClass',
   '2013-12-02T02:44:35.452Z',
-  {
-    where: {
-      testKey: 'testValue'
-    }
-  }
+  { where: {
+    testKey: 'testValue'
+  }}
 )
-
