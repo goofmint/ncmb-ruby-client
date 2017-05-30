@@ -1,26 +1,24 @@
+# frozen_string_literal: true
+
 module NCMB
-  class Push
+  class Push < NCMB::Object
     include NCMB
-    attr_accessor :deliveryTime, :immediateDeliveryFlag, :target, :searchCondition, :message,
-    :userSettingValue, :deliveryExpirationDate, :deliveryExpirationTime, :action, :title, :dialog,
-    :badgeIncrementFlag, :badgeSetting, :sound, :contentAvailable, :richUrl, :acl, :objectId, :createDate, :errors
     
-    def save
-      path = "/#{@@client.api_version}/push"
-      queries = {}
+    def initialize(params = {})
       [:deliveryTime, :immediateDeliveryFlag, :target, :searchCondition, :message,
-       :userSettingValue, :deliveryExpirationDate, :deliveryExpirationTime, :action, :title, :dialog,
-       :badgeIncrementFlag, :badgeSetting, :sound, :contentAvailable, :richUrl, :acl].each do |name|
-        queries[name] = send(name) unless send(name).nil?
+      :userSettingValue, :deliveryExpirationDate, :deliveryExpirationTime, :action, :title, :dialog,
+      :badgeIncrementFlag, :badgeSetting, :sound, :contentAvailable, :richUrl].each do |name|
+        params[name] = nil unless params[name]
       end
-      results = @@client.post path, queries
-      if results[:objectId].nil?
-        self.errors = results
-        return false
-      end
-      self.objectId = results[:objectId]
-      self.createDate = results[:createDate]
-      return true
+      @search_key = :search_condition
+      @queries = {}
+      @queries[@search_key] = []
+      super('push', params)
     end
+    
+    def base_path
+      "/#{@@client.api_version}/#{@name}"
+    end
+    
   end
 end

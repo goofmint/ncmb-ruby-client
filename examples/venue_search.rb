@@ -1,5 +1,8 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
@@ -13,22 +16,22 @@ json['response']['venues'].each do |venue|
   params = {
     name: venue['name'],
     location: {
-      "__type" => "GeoPoint",
-      "latitude" => venue['location']['lat'],
-      "longitude" => venue['location']['lng']
+      '__type' => 'GeoPoint',
+      'latitude' => venue['location']['lat'],
+      'longitude' => venue['location']['lng']
     }
   }
   puts venues_class.post(params).body
 end
 params = {}
 params[:where] = {
-  "location" => {
-    "$nearSphere" => {
-      "__type" => "GeoPoint",
-      "longitude" => 139.745433,
-      "latitude" => 35.691152
+  'location' => {
+    '$nearSphere' => {
+      '__type' => 'GeoPoint',
+      'longitude' => 139.745433,
+      'latitude' => 35.691152
     },
-    "$maxDistanceInKilometers" => 10
+    '$maxDistanceInKilometers' => 10
   }
 }
 #  

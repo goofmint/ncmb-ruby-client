@@ -1,20 +1,25 @@
-require "spec_helper"
+# frozen_string_literal: true
+
+require 'spec_helper'
 describe NCMB do
   before do
     yaml = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'setting.yml'))
-    @ncmb = NCMB::Client.new(application_key: yaml['application_key'], 
-                      client_key: yaml['client_key']
-                      )
-    @object_id = @ncmb.post('/2013-09-01/classes/TODO', todo: "Test task")[:objectId]
+    NCMB.initialize(
+      application_key: yaml['application_key'],
+      client_key: yaml['client_key']
+    )
+    @Todo = NCMB::DataStore.new('TODO')
+    @todo = @Todo.new(text: 'Test task')
+    @object_id = @todo.save().objectId
   end
   
-  it "Delete #1" do
-    res = @ncmb.delete("/2013-09-01/classes/TODO/#{@object_id}")
-    res.should == {}
+  it 'Delete #1' do
+    @todo.delete.should == true
   end
 
-  it "Delete #2" do
-    res = @ncmb.delete("/2013-09-01/classes/TODO/doesnotexist")
-    res[:code].should == 'E404001'
+  it 'Delete again' do
+    @todo.delete.should == true
+    @todo.delete.should == false
+    @todo.error[:code].should == 'E404001'
   end
 end

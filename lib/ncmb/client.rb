@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Time
   def to_json(a)
     v = self.getgm
@@ -11,6 +13,8 @@ module NCMB
   @application_key = nil
   @client_key = nil
   @@client = nil
+  @@current_user = nil
+  @@last_error = nil
   
   class Client
     include NCMB
@@ -22,20 +26,20 @@ module NCMB
       @client_key      = params[:client_key]
     end
     
-    def get(path, params)
+    def get(path, params = {})
       request :get, path, params
     end
     
-    def post(path, params)
+    def post(path, params = {})
       request :post, path, params
     end
 
-    def put(path, params)
+    def put(path, params = {})
       request :put, path, params
     end
     
-    def delete(path, params)
-      request :delete, path
+    def delete(path, params = {})
+      request :delete, path, params
     end
     
     def array2hash(ary)
@@ -99,13 +103,37 @@ module NCMB
       params = method == :get ? params_base.merge(encode_query(queries)) : params_base
       now ||= Time.now.utc.iso8601
       params = params.merge "X-NCMB-Timestamp" => now
-      params = params.sort_by{|a, b| a.to_s}.to_h
+      if [].respond_to?("to_h") # Array#to_h inpremented over ruby 2.1
+        params = params.sort_by{|a, b| a.to_s}.to_h
+      else
+        sorted_params = {}
+        params = params.sort_by{|a, b| a.to_s}.each {|kv|
+          sorted_params[kv[0]] = kv[1]
+        }
+        params = sorted_params
+      end
       signature_base = []
       signature_base << method.upcase
       signature_base << @domain
       signature_base << path
       signature_base << params.collect{|k,v| "#{k}=#{v}"}.join("&")
-      signature = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
+      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), @client_key, signature_base.join("\n"))).strip()
+    end
+    
+    def make_boundary(boundary, queries)
+      post_body = []
+      post_body << "--#{boundary}"
+      post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"#{queries[:fileName]}\""
+      post_body << "Content-Type: #{queries['mime-type'.to_sym]}"
+      post_body << ""
+      post_body << queries[:file].read
+      post_body << ""
+      post_body << "--#{boundary}"
+      post_body << "Content-Disposition: form-data; name=\"acl\""
+      post_body << ""
+      post_body << queries[:acl].to_json
+      post_body << "--#{boundary}--"
+      post_body.join("\r\n")
     end
     
     def request(method, path, queries = {})
@@ -119,23 +147,65 @@ module NCMB
         "X-NCMB-Timestamp" => now,
         "Content-Type" => 'application/json'
       }
-      # queries = hash2query(queries)
-      case method
-      when :get
-        query = encode_query(queries).map do |key, value|
-          "#{key}=#{value}"
-        end.join("&")
-        path = path + (query == '' ? "" : "?"+query)
-        return JSON.parse(http.get(path, headers).body, symbolize_names: true)
-      when :post
-        queries = change_query(queries)
-        return JSON.parse(http.post(path, queries.to_json, headers).body, symbolize_names: true)
-      when :put
-        return JSON.parse(http.put(path, queries.to_json, headers).body, symbolize_names: true)
-      when :delete
-        http.delete(path, headers)
-        return {}
+      if NCMB.CurrentUser
+        headers['X-NCMB-Apps-Session-Token'] = NCMB.CurrentUser.sessionToken
       end
+      # queries = hash2query(queries)
+      json = nil
+      begin
+        case method
+        when :get
+          query = encode_query(queries).map do |key, value|
+            "#{key}=#{value}"
+          end.join("&")
+          path = path + (query == '' ? "" : "?"+query)
+          rp = Regexp.new "/#{NCMB::API_VERSION}/files/.*"
+          if path =~ rp
+            json = http.get(path, headers).body
+          else
+            json = JSON.parse(http.get(path, headers).body, symbolize_names: true)
+          end
+        when :post
+          req = Net::HTTP::Post.new(path)
+          if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
+            boundary = SecureRandom.uuid
+            req.body = make_boundary(boundary, queries)
+            headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+          else
+            queries = change_query(queries)
+            req.body = queries.to_json
+          end
+          headers.each do |key, value|
+            req[key] = value
+          end
+          json =  JSON.parse(http.request(req).body, symbolize_names: true)
+        when :put
+          req = Net::HTTP::Put.new(path)
+          if queries[:file].is_a?(File) || queries[:file].is_a?(StringIO)
+            boundary = SecureRandom.uuid
+            req.body = make_boundary(boundary, queries)
+            headers["Content-Type"] = "multipart/form-data; boundary=#{boundary}"
+          else
+            queries = change_query(queries)
+            req.body = queries.to_json
+          end
+          headers.each do |key, value|
+            req[key] = value
+          end
+          json =  JSON.parse(http.request(req).body, symbolize_names: true)
+        when :delete
+          response = http.delete(path, headers).body
+          return true if response == ""
+          json = JSON.parse(response, symbolize_names: true)
+        end
+      rescue => e
+        @@last_error =  e
+        raise NCMB::APIError.new(e.to_s)
+      end
+      if json.is_a?(Hash) && json[:error] != nil
+        raise NCMB::APIError.new(json[:error])
+      end
+      json
     end
   end
   
@@ -146,5 +216,19 @@ module NCMB
     }
     defaulted.merge!(params)
     @@client = Client.new(defaulted)
+  end
+  
+  def NCMB.CurrentUser
+    @@current_user
+  end
+  
+  class APIError < StandardError
+    def initialize(msg)
+      @message = msg
+    end
+    
+    def message
+      @message
+    end
   end
 end

@@ -1,14 +1,22 @@
+# frozen_string_literal: true
+
 module NCMB
   class DataStore
     include NCMB
+    
+    include NCMB::Query
     
     def initialize(name, fields = {}, alc = "")
       @name    = name
       @alc     = alc
       @fields  = fields
-      @queries = {where: []}
+      @search_key = :where
+      @queries = {}
+      @queries[@search_key] = []
       @items   = nil
+      @path    = nil
     end
+    attr_accessor :path
     
     def error
       @error
@@ -62,78 +70,25 @@ module NCMB
       self
     end
     
-    [
-      {greaterThan: "$gt"},
-      {notEqualTo: "$ne"},
-      {equalTo: nil},
-      {lessThan: "$lt"},
-      {lessThanOrEqualTo: "$lte"},
-      {greaterThanOrEqualTo: "$gte"},
-      {in: "$in"},
-      {notIn: "$nin"},
-      {exists: "$exists"},
-      {regex: "$regex"},
-      {inArray: "$inArray"},
-      {notInArray: "$ninArray"},
-      {allInArray: "$all"},
-    ].each do |m|
-      define_method m.keys.first do |name, value|
-        params = {}
-        if m.values.first.nil?
-          params[name] = value
-        else
-          params[name] = {}
-          params[name][m.values.first] = value
-        end
-        @queries[:where] << params
-        self
-      end
-    end
-    
-    [
-      {withinKilometers: "$maxDistanceInKilometers"},
-      {withinMiles: "$maxDistanceInMiles"},
-      {withinRadians: "$maxDistanceInRadians"}
-    ].each do |m|
-      define_method m.keys.first do |name, geo, value|
-        params = {}
-        params[name] = {
-          "$nearSphere": geo,
-        }
-        params[name][m.values.first] = value
-        @queries[:where] << params
-        self
-      end
-    end
-      
-    def withinSquare(name, geo1, geo2)
-      params = {}
-      params[name] = {
-        "$within": {
-          "$box": [
-            geo1,
-            geo2
-          ]
-        }
-      }
-      @queries[:where] << params
-      self
-    end
-    
-    def where(name, value)
-      params = {}
-      params[name] = value
-      @queries[:where] << params
-      self
-    end
-    
     def [](count)
       get[count]
     end
     
+    def path
+      return @path if @path
+      if ["file", "user", "push", "installation"].include? @name
+        if @name == "push"
+          "/#{@@client.api_version}/#{@name}"
+        else
+          "/#{@@client.api_version}/#{@name}s"
+        end
+      else
+        "/#{@@client.api_version}/classes/#{@name}"
+      end
+    end
+    
     def get
-      return @items unless @items.nil?
-      path = "/#{@@client.api_version}/classes/#{@name}"
+      # return @items unless @items.nil?
       results = @@client.get path, @queries
       return [] unless results
       if results[:error] && results[:error] != ""
@@ -153,22 +108,30 @@ module NCMB
             result[key] = Time.parse(field[:iso])
           end
         end
-        alc = result[:acl]
-        result.delete(:acl)
-        @items << NCMB::Object.new(@name, result, alc)
+        @items << NCMB::Object.new(@name, result)
       end
       @items
+    end
+    alias :all :get
+    
+    def queries
+      @queries
     end
     
     def delete_all
       max = 1000
-      count = self.limit(max).count().get
+      dataStore = NCMB::DataStore.new(@name)
+      count = dataStore.limit(max).count().all
       if count == 0
         return true
       end
-      @queries.delete :count
-      self.limit(max).each do |item|
-        item.delete
+      dataStore.queries.delete :count
+      dataStore.each do |item|
+        begin
+          item.delete if item.deletable?
+        rescue
+          puts "Can't delete #{item.objectId}"
+        end
       end
       if count > max
         return delete_all

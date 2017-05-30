@@ -12,13 +12,11 @@ NCMB.initialize(
   client_key: yaml['client_key']
 )
 
-@push = NCMB::Push.new
-@push.immediateDeliveryFlag = true
-@push.target = ['ios']
-@push.message = 'This is test message'
-@push.deliveryExpirationTime = '3 day'
-if @push.save
-  puts 'Push save successful.'
-else
-  puts 'Push save faild.'
-end
+Parent = NCMB::DataStore.new 'Parent'
+
+Child = NCMB::DataStore.new 'Child'
+child = Child.new(name: 'Taro')
+parent = Parent.new(name: 'Oya')
+parent.child = child
+parent.save
+

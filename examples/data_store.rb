@@ -1,26 +1,33 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$:.unshift(File.dirname(__FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'ncmb'
 require 'yaml'
 yaml = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'setting.yml'))
-NCMB.initialize application_key: yaml['application_key'],  client_key: yaml['client_key']
+NCMB.initialize(
+  application_key: yaml['application_key'],
+  client_key: yaml['client_key']
+)
 
 example = NCMB::DataStore.new 'Example'
 example.delete_all
 
-10.times do |i|
+9.times do |i|
   item = example.new
   item.set('String', "テスト#{i}00")
   item.set('Integer', i)
   item.set('Boolean', true)
-  item.set('Array', [i, i * 2, i * 3, "Orange", "Tomato"])
+  item.set('Array', [i, i * 2, i * 3, 'Orange', 'Tomato'])
   item.set('Object', {test1: 'a', test2: 'b'})
   item.set('Location', NCMB::GeoPoint.new((i + 1) * 10, (i + 2) * 5))
   item.set('MultipleLine', "test\ntest\n")
   item.set('Increment', NCMB::Increment.new(i + 1))
   item.set('Date', Time.now)
   item.save
+  puts "#{item.objectId} saved."
   sleep(2)
 end
 
@@ -36,7 +43,8 @@ geo1 = NCMB::GeoPoint.new(50, 30);
 geo2 = NCMB::GeoPoint.new(51, 31);
 
 # @todo = @todo.limit(20).withinKilometers("Location", geo1, 1000)
-example = example.limit(1).withinSquare("Location", geo1, geo2)
+
+example = example.limit(1).withinSquare('Location', geo1, geo2)
 begin
   example.each_with_index do |item, i|
     puts item[:String]
@@ -49,6 +57,7 @@ begin
     # item.update
   end
 rescue NCMB::FetchError => e
+  puts e
   puts example.error
 end
 

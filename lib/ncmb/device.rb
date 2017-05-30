@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NCMB
   class Devise < NCMB::DataStore
     attr_accessor :client, :name
@@ -7,7 +9,7 @@ module NCMB
     end
     
     def push
-      return NCMB::Push.new(client
+      return NCMB::Push.new(client)
     end
   end
 end
