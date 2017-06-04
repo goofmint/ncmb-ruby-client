@@ -19,4 +19,3 @@ child = Child.new(name: 'Taro')
 parent = Parent.new(name: 'Oya')
 parent.child = child
 parent.save
-

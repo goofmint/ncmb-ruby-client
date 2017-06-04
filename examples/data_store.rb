@@ -21,7 +21,7 @@ example.delete_all
   item.set('Integer', i)
   item.set('Boolean', true)
   item.set('Array', [i, i * 2, i * 3, 'Orange', 'Tomato'])
-  item.set('Object', {test1: 'a', test2: 'b'})
+  item.set('Object', { test1: 'a', test2: 'b' })
   item.set('Location', NCMB::GeoPoint.new((i + 1) * 10, (i + 2) * 5))
   item.set('MultipleLine', "test\ntest\n")
   item.set('Increment', NCMB::Increment.new(i + 1))
@@ -31,13 +31,15 @@ example.delete_all
   sleep(2)
 end
 
-# @todo = @todo.limit(20).where("String", 'テスト100').greaterThan("Integer", 1)
-# @todo = @todo.limit(20).notEqualTo("String", 'テスト100')
-# @todo = @todo.limit(20).in("String", ['テスト100'])
-# @todo = @todo.limit(20).notIn("String", ['テスト100'])
-# @todo = @todo.limit(20).inArray("Array", [4])
-# @todo = @todo.limit(20).notInArray("Array", ['Orange'])
-# @todo = @todo.limit(20).allInArray("Array", [1, 2, 4])
+=begin
+@todo = @todo.limit(20).where("String", 'テスト100').greaterThan("Integer", 1)
+@todo = @todo.limit(20).notEqualTo("String", 'テスト100')
+@todo = @todo.limit(20).in("String", ['テスト100'])
+@todo = @todo.limit(20).notIn("String", ['テスト100'])
+@todo = @todo.limit(20).inArray("Array", [4])
+@todo = @todo.limit(20).notInArray("Array", ['Orange'])
+@todo = @todo.limit(20).allInArray("Array", [1, 2, 4])
+=end
 
 geo1 = NCMB::GeoPoint.new(50, 30);
 geo2 = NCMB::GeoPoint.new(51, 31);
@@ -62,4 +64,3 @@ rescue NCMB::FetchError => e
 end
 
 # puts "@todo[0].name #{@todo[0].text}"
-

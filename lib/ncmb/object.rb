@@ -5,19 +5,19 @@ module NCMB
     include NCMB
 
     def initialize(name, fields = {})
-      @name    = name
+      @name = name
       fields[:acl] = NCMB::Acl.new(fields[:acl])
-      @fields  = fields
+      @fields = fields
     end
-    
+
     def fields
       @fields
     end
-    
+
     def ClassName
       @name
     end
-    
+
     def method_missing(name, value = nil)
       if name =~ /.*=$/
         sym = name.to_s.gsub(/(.*?)=$/, '\1').to_sym
@@ -35,37 +35,37 @@ module NCMB
     def set(name, value)
       @fields[name.to_sym] = value
     end
-    
+
     def call(name)
       @fields[name.to_sym] || NoMethodError
     end
-    
+
     def [](key)
       @fields[key]
     end
-    
+
     def deletable?
-      if self.acl['*'.to_sym][:write] == true
+      if acl['*'.to_sym][:write] == true
         return true
       end
       return false unless NCMB.CurrentUser
-      return false unless self.acl[NCMB.CurrentUser.objectId.to_sym]
-      return false unless self.acl[NCMB.CurrentUser.objectId.to_sym][:write]
+      return false unless acl[NCMB.CurrentUser.objectId.to_sym]
+      return false unless acl[NCMB.CurrentUser.objectId.to_sym][:write]
       true
     end
-    
+
     def base_path
       "/#{@@client.api_version}/classes/#{@name}"
     end
-    
+
     def path
       "#{base_path}/#{@fields[:objectId] || '' }"
     end
-    
+
     def saved?
       @fields[:objectId] != nil
     end
-    
+
     def convert_params
       @fields.each do |key, field|
         if field.is_a?(NCMB::Object)
@@ -77,16 +77,18 @@ module NCMB
           }
         end
         if field.is_a?(Array) && field[0].is_a?(NCMB::Object)
-          relation = NCMB::Relation.new
-          field.each do |sub_field|
-            sub_field.save unless sub_field.saved?
-            relation << sub_field
-          end
-          @fields[key] = relation
+        else
+          next
         end
+        relation = NCMB::Relation.new
+        field.each do |sub_field|
+          sub_field.save unless sub_field.saved?
+          relation << sub_field
+        end
+        @fields[key] = relation
       end
     end
-    
+
     def post
       return self.put if saved?
       convert_params
@@ -94,8 +96,8 @@ module NCMB
       @fields.merge!(result)
       self
     end
-    alias :save :post
-    
+    alias save post
+
     def put
       return self.post unless saved?
       convert_params
@@ -108,8 +110,8 @@ module NCMB
       @fields[:updateDate] = result[:updateDate]
       self
     end
-    alias :update :put
-    
+    alias update put
+
     def delete
       response = @@client.delete path, {}
       if response == true
@@ -119,7 +121,7 @@ module NCMB
         return false
       end
     end
-    
+
     def error
       @@last_error
     end
