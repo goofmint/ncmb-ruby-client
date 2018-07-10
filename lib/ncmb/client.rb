@@ -125,7 +125,6 @@ module NCMB
       post_body << "--#{boundary}"
       post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"#{queries[:fileName]}\""
       post_body << "Content-Type: #{queries['mime-type'.to_sym]}"
-      post_body << ""
       post_body << queries[:file].read
       post_body << ""
       post_body << "--#{boundary}"
