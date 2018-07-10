@@ -26,15 +26,17 @@ module NCMB
       params.to_json
     end
     
-    def public(read_or_write, value = true)
-      @fields['*'.to_sym][read_or_write.to_sym] = value
+    def public(read_or_write, bol = true)
+      @fields['*'.to_sym][read_or_write.to_sym] = bol
     end
     
+    # :reek:DuplicateMethodCall { max_calls: 2 }
     def user(user, read_or_write, value = true)
       @fields[user.objectId.to_sym] = {read: true, write: true} unless @fields[user.objectId.to_sym]
       @fields[user.objectId.to_sym][read_or_write.to_sym] = value
     end
     
+    # :reek:DuplicateMethodCall { max_calls: 2 }
     def role(role, read_or_write, value = true)
       @fields[role.name.to_sym] = {read: true, write: true} unless @fields[role.name.to_sym]
       @fields[role.name.to_sym][read_or_write.to_sym] = value

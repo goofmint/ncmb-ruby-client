@@ -8,7 +8,7 @@ class Time
 end
 
 module NCMB
-  DOMAIN = 'mb.api.cloud.nifty.com'
+  DOMAIN = 'mbaas.api.nifcloud.com'
   API_VERSION = '2013-09-01'
   @application_key = nil
   @client_key = nil
